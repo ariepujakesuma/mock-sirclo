@@ -1,0 +1,9 @@
+{
+  "name": "mock-sirclo",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Mock Sirclo WA Commerce + Meta<->Sirclo adapter for Connect by Creacon",
+  "main": "mock-sirclo.js",
+  "scripts": { "start": "node mock-sirclo.js" },
+  "engines": { "node": ">=18" }
+}
