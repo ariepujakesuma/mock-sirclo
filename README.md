@@ -38,6 +38,7 @@ Creacon BE menggantikan posisi Zanroo/Jatis di tech doc, jadi BE harus:
 | POST | `/mock/reply` | Tiruan endpoint reply Creacon BE, untuk tes mandiri |
 | GET | `/pay/order?scvCartId=` | Halaman checkout SCV2 tiruan |
 | GET | `/mock/outbox` · `/mock/inbox` · `/mock/sessions` | Debug: 100 pesan terakhir & state sesi |
+| POST | `/mock/simulate` | Jalankan otomatis Step 1 → 7 dengan pilihan dummy; semua outbound dikirim ke `REPLY_URL` |
 | POST | `/mock/reset` | Hapus semua sesi & log |
 | GET | `/health` | Health check |
 
@@ -72,6 +73,34 @@ curl -X POST $W -H 'Content-Type: application/json' -d '{"results":[{"from":"'$C
 # Lihat semua outbound
 curl http://localhost:4010/mock/outbox
 ```
+
+## Simulasi otomatis
+
+Menjalankan seluruh alur tanpa HP/curl per step: start session → pilih kategori → kirim keranjang → klik Memesan. Setiap outbound dikirim ke `REPLY_URL` dengan jeda `delayMs`.
+
+```bash
+# default: customer 6281337875000, kategori Body Care, 1x NIVEA Intensive Lotion, checkout
+curl -X POST https://mock-sirclo.unisync.id/mock/simulate
+
+# custom
+curl -X POST https://mock-sirclo.unisync.id/mock/simulate -H 'Content-Type: application/json' -d '{
+  "customer": "62812xxxxxxx",
+  "categoryId": "2_20",
+  "items": [{ "currency": "IDR", "itemPrice": 19500, "productRetailerId": "13142601250008", "quantity": 2 }],
+  "checkout": true,
+  "delayMs": 1500
+}'
+```
+
+| Field | Default | Keterangan |
+|---|---|---|
+| `customer` | `6281337875000` | Nomor tujuan. Pakai nomor WA asli untuk melihat pesannya di HP (harus dalam window 24 jam) |
+| `categoryId` | `2_20` | ID kategori dari `fixtures.json` |
+| `items` | 1x `13142601250008` @ 19.500 | Isi keranjang (format `productItems`) |
+| `checkout` | `true` | `false` = klik "Terus Mencari" alih-alih "Memesan" |
+| `delayMs` | `1500` | Jeda antar step supaya urutan pesan di WhatsApp tidak tertukar |
+
+Response berisi ringkasan tiap step: payload outbound, `delivered`, dan `status` dari `REPLY_URL`.
 
 ## Data dummy (`fixtures.json`)
 

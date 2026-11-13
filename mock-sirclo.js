@@ -140,6 +140,53 @@ async function sendOutbound(payload) {
     entry.error = e.message;
     console.error(`[OUT] failed: ${e.message}`);
   }
+  return entry;
+}
+
+// Builds an inbound in the same shape Creacon BE sends (OutboundHandler._parse_result)
+function fakeInbound(customer, message) {
+  return {
+    from: customer,
+    to: FIXTURES.businessNumber,
+    integrationType: 'WHATSAPP',
+    receivedAt: now(),
+    messageId: crypto.randomUUID(),
+    callbackData: 'callbackData',
+    message,
+    price: { pricePerMessage: 0, currency: 'IDR' },
+    contact: { name: 'Simulated Customer' },
+  };
+}
+
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+
+// Runs Step 1 -> 7 automatically with dummy choices
+async function simulate(opts = {}) {
+  const customer = String(opts.customer || '6281337875000');
+  const category = FIXTURES.categories.find(c => c.id === opts.categoryId) || FIXTURES.categories[0];
+  const items = opts.items || [{ currency: 'IDR', itemPrice: 19500, productRetailerId: '13142601250008', quantity: 1 }];
+  const delayMs = Number(opts.delayMs ?? 1500);
+  const checkout = opts.checkout !== false;
+
+  const script = [
+    ['start session', { type: 'TEXT', text: 'Beli NIVEA di WhatsApp' }],
+    ['select category', { type: 'INTERACTIVE_LIST_REPLY', id: category.id, title: category.title }],
+    ['add to cart', { type: 'ORDER', catalogId: FIXTURES.catalogId, text: '', productItems: items }],
+    checkout
+      ? ['click order', { type: 'INTERACTIVE_BUTTON_REPLY', id: 'getcart.checkout', title: 'Memesan' }]
+      : ['back to category', { type: 'INTERACTIVE_BUTTON_REPLY', id: 'getcart.keep_browsing', title: 'Terus Mencari' }],
+  ];
+
+  sessions.delete(customer);
+  const steps = [];
+  for (const [label, message] of script) {
+    const result = fakeInbound(customer, message);
+    push(inbox, { at: now(), simulated: true, body: { results: [result], messageCount: 1, pendingMessageCount: 0 } });
+    const out = await sendOutbound(handleInbound(result));
+    steps.push({ inbound: label, outbound: out.payload.content, delivered: out.delivered, status: out.status, error: out.error });
+    await sleep(delayMs);
+  }
+  return { customer, replyUrl: REPLY_URL || null, steps };
 }
 
 // ---------- http ----------
@@ -183,6 +230,11 @@ http.createServer(async (req, res) => {
 
     if (req.method === 'GET' && url.pathname === '/pay/order') {
       return send(res, 200, `<h1>Mock SCV2 Checkout</h1><p>scvCartId: ${url.searchParams.get('scvCartId') || '-'}</p><p>Halaman pembayaran tiruan, tidak ada transaksi sungguhan.</p>`, 'text/html');
+    }
+
+    if (req.method === 'POST' && url.pathname === '/mock/simulate') {
+      const opts = await readJson(req);
+      return send(res, 200, await simulate(opts));
     }
 
     if (req.method === 'GET' && url.pathname === '/mock/outbox') return send(res, 200, outbox);
