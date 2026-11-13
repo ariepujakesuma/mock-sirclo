@@ -1,0 +1,31 @@
+{
+  "businessNumber": "628116621180",
+  "catalogId": "384731680916067",
+  "categories": [
+    {
+      "id": "2_20",
+      "title": "Body Care",
+      "productRetailerIds": [
+        "13142601220008", "13142601250008", "13142601260010", "13142601270027", "13142601280010",
+        "13142601310008", "13142601320010", "13142601330027", "13142601390008", "13142601400010",
+        "13142601350024", "13142601360024", "13142601380010", "13142601430010", "13142601450024",
+        "13142601460024", "NVB4G55", "NVB4G89", "NVB4H03", "NVB4H29",
+        "NVB4H48", "NVB4H51", "NVB4H52", "NVB4H60", "NVB4H61",
+        "NVB4H68", "NVB4H69", "ASV13142601040026", "NVA0G49002", "NVA0G75002"
+      ]
+    },
+    { "id": "2_21", "title": "Deodorant Women" },
+    { "id": "2_22", "title": "Deodorant Men" },
+    { "id": "2_23", "title": "Sun" },
+    { "id": "2_24", "title": "Men" },
+    { "id": "2_25", "title": "Face Care" },
+    { "id": "2_26", "title": "Lip Care" },
+    { "id": "2_27", "title": "Luminous" },
+    { "id": "2_28", "title": "Test Body Care" },
+    { "id": "2_29", "title": "Deodorants" }
+  ],
+  "defaultProductRetailerIds": ["13142601250008"],
+  "productNames": {
+    "13142601250008": "NIVEA Intensive Lotion 100ml"
+  }
+}
